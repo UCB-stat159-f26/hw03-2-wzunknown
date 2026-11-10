@@ -1,4 +1,5 @@
 import math
+import urllib.error
 from pathlib import Path
 
 import pandas as pd
@@ -50,3 +51,33 @@ def test_clean_matches_male():
     df = data._clean_matches(matches, pd.Timestamp("1986-06-03"))
     assert list(df["result"]) == ["L", "L", "W"]
     assert df["opponent_age"][0] == 22.264202601
+
+
+def fake_fetch(url):
+    return FEMALE_JS if url.endswith("Career.js") else PLAYER_JS
+
+
+def fake_fetch_error(code):
+    def fetch(url):
+        raise urllib.error.HTTPError(url, code, "error", None, None)
+
+    return fetch
+
+
+def test_get_career_data(monkeypatch):
+    monkeypatch.setattr(data, "_fetch_text", fake_fetch)
+    df = data.get_career_data("serena williams")
+    assert len(df) == 3
+    assert df["player"][0] == "Serena Williams"
+
+
+def test_get_career_data_unknown_player(monkeypatch):
+    monkeypatch.setattr(data, "_fetch_text", fake_fetch_error(404))
+    with pytest.raises(ValueError, match="not found"):
+        data.get_career_data("Gaston Sanchez")
+
+
+def test_get_career_data_other_error(monkeypatch):
+    monkeypatch.setattr(data, "_fetch_text", fake_fetch_error(403))
+    with pytest.raises(urllib.error.HTTPError):
+        data.get_career_data("Serena Williams")
