@@ -17,18 +17,22 @@ OPPONENT_COL = 16
 def get_career_data(player_name: str) -> pd.DataFrame:
     """Get the career matches of a player as a clean data frame."""
     name = _to_name_param(player_name)
-    try:
-        career_js = _fetch_text(f"{BASE_URL}/{name}Career.js")
-    except urllib.error.HTTPError as err:
-        if err.code == 404:
-            raise ValueError(
-                f"Player '{player_name}' was not found on tennisabstract.com"
-            ) from err
-        raise
+    career_js = _fetch_career_js(name)
     player_js = _fetch_text(f"{BASE_URL}/{name}.js")
     data = _clean_matches(_parse_matches(career_js), _parse_dob(player_js))
     data.insert(0, "player", _parse_full_name(player_js))
     return data
+
+
+def _fetch_career_js(name: str) -> str:
+    """Download the career JS file, with a clear error for unknown players."""
+    try:
+        return _fetch_text(f"{BASE_URL}/{name}Career.js")
+    except urllib.error.HTTPError as err:
+        if err.code != 404:
+            raise
+        message = f"Player '{name}' was not found on tennisabstract.com"
+        raise ValueError(message) from err
 
 
 def _to_name_param(player_name: str) -> str:
