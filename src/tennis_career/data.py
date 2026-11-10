@@ -45,8 +45,9 @@ def _fetch_text(url: str) -> str:
 
 def _parse_matches(career_js: str) -> list:
     """Read the list of matches from a career JS file."""
-    text = career_js.replace("var morematchmx = ", "").strip().rstrip(";")
-    return json.loads(text)
+    start = career_js.index("[")
+    end = career_js.rindex("]") + 1
+    return json.loads(career_js[start:end])
 
 
 def _parse_dob(player_js: str) -> pd.Timestamp:
