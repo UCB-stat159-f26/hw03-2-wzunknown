@@ -1,14 +1,38 @@
 import json
 import re
+import urllib.request
 
 import pandas as pd
 
+BASE_URL = "https://www.tennisabstract.com/jsmatches"
 DAYS_PER_YEAR = 365.25
 
 # column positions in the career JS file
 DATE_COL = 0
 RESULT_COL = 4
 OPPONENT_COL = 16
+
+
+def get_career_data(player_name: str) -> pd.DataFrame:
+    """Get the career matches of a player as a clean data frame."""
+    name = _to_name_param(player_name)
+    career_js = _fetch_text(f"{BASE_URL}/{name}Career.js")
+    player_js = _fetch_text(f"{BASE_URL}/{name}.js")
+    data = _clean_matches(_parse_matches(career_js), _parse_dob(player_js))
+    data.insert(0, "player", _parse_full_name(player_js))
+    return data
+
+
+def _to_name_param(player_name: str) -> str:
+    """Turn 'serena williams' into 'SerenaWilliams'."""
+    words = player_name.split()
+    return "".join(word[0].upper() + word[1:] for word in words)
+
+
+def _fetch_text(url: str) -> str:
+    """Download a web page as text."""
+    with urllib.request.urlopen(url, timeout=30) as response:
+        return response.read().decode("utf-8")
 
 
 def _parse_matches(career_js: str) -> list:
