@@ -1,5 +1,6 @@
 import json
 import re
+import urllib.error
 import urllib.request
 
 import pandas as pd
@@ -16,7 +17,14 @@ OPPONENT_COL = 16
 def get_career_data(player_name: str) -> pd.DataFrame:
     """Get the career matches of a player as a clean data frame."""
     name = _to_name_param(player_name)
-    career_js = _fetch_text(f"{BASE_URL}/{name}Career.js")
+    try:
+        career_js = _fetch_text(f"{BASE_URL}/{name}Career.js")
+    except urllib.error.HTTPError as err:
+        if err.code == 404:
+            raise ValueError(
+                f"Player '{player_name}' was not found on tennisabstract.com"
+            ) from err
+        raise
     player_js = _fetch_text(f"{BASE_URL}/{name}.js")
     data = _clean_matches(_parse_matches(career_js), _parse_dob(player_js))
     data.insert(0, "player", _parse_full_name(player_js))
