@@ -18,6 +18,7 @@ with open(f"data/{player}.js") as f:
     info = f.read()
 dob = re.search(r"var dob=(\d+);", info).group(1)
 dob = pd.to_datetime(dob, format="%Y%m%d")
+full_name = re.search(r"var fullname = '(.*)';", info).group(1)
 
 DAYS_PER_YEAR = 365.25
 
@@ -40,6 +41,8 @@ df = pd.DataFrame(rows, columns=["date", "result", "opponent_age"])
 df["player_age"] = (df["date"] - dob).dt.days / DAYS_PER_YEAR
 df["age_diff"] = df["player_age"] - df["opponent_age"]
 df = df.dropna()
+df.insert(0, "player", full_name)
 
 print(df.head())
 print(len(df))
+df.to_csv(f"data/{player}.csv", index=False)
