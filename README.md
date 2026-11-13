@@ -60,3 +60,11 @@ uv run ruff check    # lint the code
 ```
 
 The tests use the mock JS files in `tests/mock/` and fake downloads, so they never hit tennisabstract.com.
+
+## Reflections
+
+Overall the instructions provide very clear and detailed steps and requirements to complete this assignment.
+The main effort is to convert previous temporary data downloading to a reusable function interface, that can be used for different inputs.
+Since the main player's date of birth is unknown from the `{Name}Career.js` file, I checked the page loading traffics and found this `{Name}.js` file including more detailed metadata.
+Moreover, splitting the functions into small units and writing unit tests for them are pretty important for maintenance of the project.
+The unit tests can also serve as records of corner cases found during the development and ensure it would not happen again.
